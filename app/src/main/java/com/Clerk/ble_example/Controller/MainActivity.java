@@ -1,4 +1,4 @@
-package com.noahliu.ble_example.Controller;
+package com.Clerk.ble_example.Controller;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,19 +14,16 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
 
-import com.noahliu.ble_example.Module.Adapter.RecyclerViewAdapter;
-import com.noahliu.ble_example.Module.Enitiy.ScannedData;
-import com.noahliu.ble_example.Module.Service.BluetoothLeService;
-import com.noahliu.ble_example.R;
+import com.Clerk.ble_example.Module.Adapter.RecyclerViewAdapter;
+import com.Clerk.ble_example.Module.Enitiy.ScannedData;
+import com.Clerk.ble_example.Module.Service.BluetoothLeService;
+import com.Clerk.ble_example.R;
 
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -76,11 +73,16 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this,"Not support Bluetooth", Toast.LENGTH_SHORT).show();
                 finish();
             }
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+            }
             /**開啟藍芽適配器*/
             if(!mBluetoothAdapter.isEnabled()){
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
             }
+
         }else finish();
     }
     /**初始藍牙掃描及掃描開關之相關功能*/
@@ -189,49 +191,14 @@ public class MainActivity extends AppCompatActivity {
         }
         return -1;
     }
-    /**
-     * Byte轉16進字串工具
-     */
-//    public static String byteArrayToHexStr(byte[] byteArray) {
-//        if (byteArray == null) {
-//            return null;
-//        }
-//
-//        StringBuilder hex = new StringBuilder(byteArray.length * 2);
-//        for (byte aData : byteArray) {
-//            hex.append(String.format("%02X", aData));
-//        }
-//        String gethex = hex.toString();
-//        return gethex;
-//    }
-
-    public static String bytesToAscii(byte[] byteArray, int offset, int dateLen) {
-        if ((byteArray == null) || (byteArray.length == 0) || (offset < 0) || (dateLen <= 0)) {
-            return null;
-        }
-        if ((offset >= byteArray.length) || (byteArray.length - offset < dateLen)) {
-            return null;
-        }
-
-        String asciiStr = null;
-        byte[] data = new byte[dateLen];
-        System.arraycopy(byteArray, offset, data, 0, dateLen);
-        try {
-            asciiStr = new String(data, "ISO8859-1");
-        } catch (UnsupportedEncodingException e) {
-        }
-        return asciiStr;
-    }
 
     /**取得欲連線之裝置後跳轉頁面*/
     private RecyclerViewAdapter.OnItemClick itemClick = new RecyclerViewAdapter.OnItemClick() {
         @Override
         public void onItemClick(ScannedData selectedDevice) {
-
-            Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
+            Intent intent = new Intent(MainActivity.this, DeviceInfoActivity .class);
             intent.putExtra(DeviceInfoActivity.INTENT_KEY,selectedDevice);
             startActivity(intent);
-
         }
     };
 

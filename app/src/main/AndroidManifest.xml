@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.noahliu.ble_example">
+    package="com.Clerk.ble_example">
 
     <uses-feature
         android:name="android.hardware.bluetooth_ble"
@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -17,10 +18,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:requestLegacyExternalStorage="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Controller.WaveActivity"></activity>
-        <activity android:name="com.noahliu.ble_example.Controller.DeviceInfoActivity"></activity>
-        <activity android:name="com.noahliu.ble_example.Controller.MainActivity">
+        <activity android:name="com.Clerk.ble_example.Controller.WaveActivity"></activity>
+        <activity android:name="com.Clerk.ble_example.Controller.ResultActivity"></activity>
+        <activity android:name="com.Clerk.ble_example.Controller.DeviceInfoActivity"></activity>
+        <activity android:name="com.Clerk.ble_example.Controller.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,7 +32,7 @@
         </activity>
 
         <service
-            android:name="com.noahliu.ble_example.Module.Service.BluetoothLeService"
+            android:name="com.Clerk.ble_example.Module.Service.BluetoothLeService"
             android:enabled="true" />
     </application>
 

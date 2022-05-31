@@ -1,9 +1,7 @@
-package com.noahliu.ble_example.Module.Enitiy;
+package com.Clerk.ble_example.Module.Enitiy;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.noahliu.ble_example.Module.Service.BluetoothLeService;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;

@@ -1,4 +1,4 @@
-package com.noahliu.ble_example.Module.Adapter;
+package com.Clerk.ble_example.Module.Adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,8 +8,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.noahliu.ble_example.Module.Enitiy.ServiceInfo;
-import com.noahliu.ble_example.R;
+import com.Clerk.ble_example.Module.Enitiy.ServiceInfo;
+import com.Clerk.ble_example.R;
 
 import java.util.List;
 

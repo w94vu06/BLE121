@@ -1,4 +1,4 @@
-package com.noahliu.ble_example.Module.Enitiy;
+package com.Clerk.ble_example.Module.Enitiy;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;

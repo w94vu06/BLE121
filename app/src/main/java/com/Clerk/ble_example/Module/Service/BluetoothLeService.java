@@ -1,4 +1,4 @@
-package com.noahliu.ble_example.Module.Service;
+package com.Clerk.ble_example.Module.Service;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -16,14 +16,15 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+
+import java.io.UnsupportedEncodingException;
+
 //import com.noahliu.ble_example.Controller.WaveUtil;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -58,9 +59,6 @@ public class BluetoothLeService extends Service {
 
     private Timer timer;
     private TimerTask timerTask;
-
-
-
 
     /**取得特性列表(characteristic的特性)*/
     public ArrayList<String> getPropertiesTagArray(int properties) {
@@ -298,9 +296,6 @@ public class BluetoothLeService extends Service {
 
 
     };
-    public class MyEvent{
-
-    }
 
     /**更新廣播*/
     private void broadcastUpdate(final String action) {
@@ -315,50 +310,13 @@ public class BluetoothLeService extends Service {
         /**對於所有其他配置文件，以十六進制寫數據*/
         final byte[] data = characteristic.getValue();
         if (data != null && data.length > 0) {
-            final StringBuilder stringBuilder = new StringBuilder(data.length);
-            for (byte byteChar : data)
-                stringBuilder.append(String.format("%02X ", byteChar));
+//            final StringBuilder stringBuilder = new StringBuilder(data.length);
+//            for (byte byteChar : data)
+//                stringBuilder.append(String.format("%02X ", byteChar));
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
         }
         sendBroadcast(intent);
     }
-    public static float byteArrayToFloat (byte[] bytes) {
-        int intBits =
-                bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
-        return Float.intBitsToFloat(intBits);
-    }
-    /**
-     * 將byte[] ASCII 轉為字串的方法
-     */
-    public static String ascii2String(byte[] in) {
-        final StringBuilder stringBuilder = new StringBuilder(in.length);
-        for (byte byteChar : in)
-            stringBuilder.append(String.format("%02X ", byteChar));
-        String output = null;
-        try {
-            output = new String(in, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return output;
-    }
-
-    /**
-     * Byte轉16進字串工具
-     */
-//    public static String byteArrayToHexStr(byte[] byteArray) {
-//        if (byteArray == null) {
-//            return null;
-//        }
-//
-//        StringBuilder hex = new StringBuilder(byteArray.length * 2);
-//        for (byte aData : byteArray) {
-//            hex.append(String.format("%02X", aData));
-//        }
-//        String gethex = hex.toString();
-//        return gethex;
-//
-//    }
     /**
      * Byte 2 Ascii
      */
@@ -384,8 +342,35 @@ public class BluetoothLeService extends Service {
     }
     public static String bytesToAscii(byte[] bytes) {
         return bytesToAscii(bytes, 0, bytes.length);
+
+    }
+
+    public static String byteArrayToHexStr(byte[] byteArray) {
+        if (byteArray == null) {
+            return null;
+        }
+        StringBuilder hex = new StringBuilder(byteArray.length * 2);
+        for (byte aData : byteArray) {
+            hex.append(String.format("%02X", aData));
+        }
+        String gethex = hex.toString();
+        return gethex;
+    }
+    public static String hexToAscii(String hexStr) {
+        StringBuilder output = new StringBuilder("");
+
+        for (int i = 0; i < hexStr.length(); i += 2) {
+            String str = hexStr.substring(i, i + 2);
+            output.append((char) Integer.parseInt(str, 16));
+        }
+
+        return output.toString();
     }
 }
+
+
+
+
 
 
 

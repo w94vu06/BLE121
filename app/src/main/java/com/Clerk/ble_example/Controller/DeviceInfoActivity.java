@@ -1,7 +1,5 @@
-package com.noahliu.ble_example.Controller;
+package com.Clerk.ble_example.Controller;
 
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -17,9 +15,9 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.noahliu.ble_example.Module.Enitiy.ScannedData;
-import com.noahliu.ble_example.Module.Service.BluetoothLeService;
-import com.noahliu.ble_example.R;
+import com.Clerk.ble_example.Module.Enitiy.ScannedData;
+import com.Clerk.ble_example.Module.Service.BluetoothLeService;
+import com.Clerk.ble_example.R;
 import java.util.List;
 
 public class DeviceInfoActivity extends AppCompatActivity{
@@ -28,9 +26,6 @@ public class DeviceInfoActivity extends AppCompatActivity{
     private BluetoothLeService mBluetoothLeService;
     private ScannedData selectedDevice;
     private TextView tvAddress,tvStatus,tvRespond;
-//    private ExpandableListAdapter expandableListAdapter;
-
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,7 +34,6 @@ public class DeviceInfoActivity extends AppCompatActivity{
         selectedDevice = (ScannedData) getIntent().getSerializableExtra(INTENT_KEY);
         initBLE();
         initUI();
-
 
         /**跳轉到心電圖*/
         Button btn_jump = findViewById(R.id.btn_jump);
@@ -67,16 +61,10 @@ public class DeviceInfoActivity extends AppCompatActivity{
     }
     /**初始化UI*/
     private void initUI(){
-//        expandableListAdapter = new ExpandableListAdapter();
-//        expandableListAdapter.onChildClick = this::onChildClick;
-//        ExpandableListView expandableListView = findViewById(R.id.gatt_services_list);
-//        expandableListView.setAdapter(expandableListAdapter);
         tvAddress = findViewById(R.id.device_address);
         tvStatus = findViewById(R.id.connection_state);
-        tvRespond = findViewById(R.id.data_value);
         tvAddress.setText(selectedDevice.getAddress());
         tvStatus.setText("未連線");
-        tvRespond.setText("---");
     }
     /**藍芽已連接/已斷線資訊回傳*/
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -111,20 +99,30 @@ public class DeviceInfoActivity extends AppCompatActivity{
                 Log.d(TAG, "已搜尋到GATT服務");
                 List<BluetoothGattService> gattList =  mBluetoothLeService.getSupportedGattServices();
                 displayGattAtLogCat(gattList);
-
             }
             /**接收來自藍芽傳回的資料*/
             else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 //Log.d(TAG, "接收到藍芽資訊");
-                byte[] getByteData = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
-                StringBuilder stringBuilder = new StringBuilder(getByteData.length);
-                for (byte byteChar : getByteData)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                String stringData = new String(getByteData);
-                tvRespond.setText(BluetoothLeService.bytesToAscii(getByteData));
+                //byte[] getByteData = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+//                StringBuilder stringBuilder = new StringBuilder(getByteData.length);
+//                for (byte byteChar : getByteData)
+//                    stringBuilder.append(String.format("%02X ", byteChar));
             }
         }
     };//onReceive
+
+    private void closeBluetooth() {
+        if (mBluetoothLeService == null) return;
+        mBluetoothLeService.disconnect();
+        unbindService(mServiceConnection);
+        unregisterReceiver(mGattUpdateReceiver);
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+//        unregisterReceiver(mGattUpdateReceiver);
+    }
+
     /**將藍芽所有資訊顯示在Logcat*/
     private void displayGattAtLogCat(List<BluetoothGattService> gattList){
 //        for (BluetoothGattService service : gattList){
@@ -138,16 +136,6 @@ public class DeviceInfoActivity extends AppCompatActivity{
 //            }
 //        }
     }
-//    /**關閉藍芽*/
-//    private void closeBluetooth() {
-//        if (mBluetoothLeService == null) return;
-//        mBluetoothLeService.disconnect();
-//        unbindService(mServiceConnection);
-//        unregisterReceiver(mGattUpdateReceiver);
-//    }
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//        closeBluetooth();
-//    }
+    /*關閉藍芽*/
+
 }
