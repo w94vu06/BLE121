@@ -61,7 +61,7 @@ public class WaveActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            /**接收來自藍芽傳回的資料*/
+            //接收來自藍芽傳回的資料
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 byte[] getByteData = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
                 StringBuilder stringBuilder = new StringBuilder(getByteData.length);
@@ -70,6 +70,8 @@ public class WaveActivity extends AppCompatActivity {
                 tv5.setText(BluetoothLeService.bytesToAscii(getByteData));
                 //Log.d(TAG, ""+BluetoothLeService.byteArrayToFloat(getByteData));
                 dad = BluetoothLeService.byteArrayToFloat(getByteData);
+                WaveUtil waveUtil = new WaveUtil();
+                waveUtil.showWaveData(wave_view1);
             }
         }
     };
@@ -77,13 +79,11 @@ public class WaveActivity extends AppCompatActivity {
         private Timer timer;
         private TimerTask timerTask;
         public void showWaveData(WaveView waveView){
-
             Log.d(TAG, "showWaveData: "+dad);
             timer = new Timer();
             timerTask = new TimerTask() {
                 @Override
                 public void run(){
-
                     waveView.showLine(dad);
                 }
             };
@@ -127,6 +127,7 @@ public class WaveActivity extends AppCompatActivity {
         try {
             asciiStr = new String(data, "ISO8859-1");
         } catch (UnsupportedEncodingException e) {
+            
         }
         return asciiStr;
     }
