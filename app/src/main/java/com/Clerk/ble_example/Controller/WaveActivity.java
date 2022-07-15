@@ -74,7 +74,7 @@ public class WaveActivity extends AppCompatActivity {
                 btn_ms.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        new CountDownTimer(3000, 1000) {
+                        new CountDownTimer(30000, 1000) {
                             @Override
                             public void onTick(long millisUntilFinished) {
                                 tv_countDown.setText(""+millisUntilFinished/1000);

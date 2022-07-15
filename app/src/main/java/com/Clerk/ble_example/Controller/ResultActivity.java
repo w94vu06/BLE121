@@ -42,7 +42,7 @@ public class ResultActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 acceptData();
-//                makeCSV();
+                makeCSV();
             }
         });
 
@@ -66,8 +66,9 @@ public class ResultActivity extends AppCompatActivity {
                 csvText.append(title[i] + ",");
             }
             for (int i = 0; i < list.size(); i++) {
-                csvText.append(list);
+                csvText.append("\n" + list.get(i));
             }
+
             Log.d("CSV", "makeCSV: "+csvText);
             runOnUiThread(()->{
                 try {
