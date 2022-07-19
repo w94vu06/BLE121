@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.content.Context.*;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,13 +18,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.Clerk.ble_example.R;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class ResultActivity extends AppCompatActivity {
     private TextView tv_result;
@@ -38,6 +42,7 @@ public class ResultActivity extends AppCompatActivity {
         setContentView(R.layout.ecg_result);
         tv_result = findViewById(R.id.tv_result);
         btn_get = findViewById(R.id.btn_get);
+
         btn_get.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -57,14 +62,16 @@ public class ResultActivity extends AppCompatActivity {
 
     private void makeCSV() {
         new Thread(()->{
+            /** 檔名 */
             String date = new SimpleDateFormat("yyyy-MM-dd",
                     Locale.getDefault()).format(System.currentTimeMillis());
             String fileName = "[" + date + "]revlis.csv";
-            String[] title = {"heart"};
+            String[] title = {"Lead2"};
             StringBuffer csvText = new StringBuffer();
             for (int i = 0; i < title.length; i++) {
                 csvText.append(title[i] + ",");
             }
+            /** 內容 */
             for (int i = 0; i < list.size(); i++) {
                 csvText.append("\n" + list.get(i));
             }
@@ -87,13 +94,47 @@ public class ResultActivity extends AppCompatActivity {
                     fileIntent.putExtra(Intent.EXTRA_SUBJECT, fileName);
                     fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     fileIntent.putExtra(Intent.EXTRA_STREAM, path);
-                    startActivity(Intent.createChooser(fileIntent,"輸出檔案"));
+                    FileUpload.run(fileLocation);
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             });
         }).start();
+    }//makeCSV
+    public static class FileUpload {
+        private static final MediaType MEDIA_TYPE_CSV = MediaType.parse("text/csv");
+        private static final OkHttpClient client = new OkHttpClient();
+
+        public static void run(File f) throws Exception {
+            String date = new SimpleDateFormat("yyyyMMddHHmmss_888888",
+                    Locale.getDefault()).format(System.currentTimeMillis());
+            String fileName = "[" + date + "]";
+            final File file = f;
+            new Thread(){
+                @Override
+                public void run(){
+                    RequestBody requestBody = new MultipartBody.Builder()
+                            .setType(MultipartBody.FORM)
+                            .addFormDataPart("title", "Square Logo")
+                            .addFormDataPart("file", fileName+".csv",
+                                    RequestBody.create(MEDIA_TYPE_CSV, file))
+                            .build();
+                    Request request = new Request.Builder()
+                            .url("http://192.168.2.210:8090")
+                            .post(requestBody)
+                            .build();
+                    try (Response response = client.newCall(request).execute()) {
+                        if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                        Log.d("return", "run: "+ response.body().string());
+                        //System.out.println(response.body().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
+        }
 
     }
-
 }

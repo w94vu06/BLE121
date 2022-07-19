@@ -68,21 +68,25 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         REQUEST_FINE_LOCATION_PERMISSION);
             }
+            /**確認手機是否開啟資料存取權限*/
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+            }
             /**確認手機是否支援藍牙BLE*/
             if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
                 Toast.makeText(this,"Not support Bluetooth", Toast.LENGTH_SHORT).show();
                 finish();
-            }
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
             }
             /**開啟藍芽適配器*/
             if(!mBluetoothAdapter.isEnabled()){
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
             }
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+            }
         }else finish();
     }
     /**初始藍牙掃描及掃描開關之相關功能*/
@@ -139,8 +143,10 @@ public class MainActivity extends AppCompatActivity {
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
     }
 
-    /**顯示掃描到物件*/
-    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+    /**
+     * 顯示掃描到物件
+     */
+    public BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             new Thread(()->{

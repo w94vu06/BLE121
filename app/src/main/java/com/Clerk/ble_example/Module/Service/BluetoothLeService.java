@@ -13,14 +13,16 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.UnsupportedEncodingException;
 
-//import com.noahliu.ble_example.Controller.WaveUtil;
-
+import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -57,43 +59,6 @@ public class BluetoothLeService extends Service {
     private BluetoothGattService bluetoothGattService;
     private BluetoothGattCharacteristic bluetoothGattCharacteristic;
 
-    private Timer timer;
-    private TimerTask timerTask;
-
-    /**取得特性列表(characteristic的特性)*/
-    public ArrayList<String> getPropertiesTagArray(int properties) {
-        int addPro = properties;
-        ArrayList<String> arrayList = new ArrayList<>();
-        int[] bluetoothGattCharacteristicCodes = new int[]{
-                BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS,
-                BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE,
-                BluetoothGattCharacteristic.PROPERTY_INDICATE,
-                BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PROPERTY_WRITE,
-                BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
-                BluetoothGattCharacteristic.PROPERTY_READ,
-                BluetoothGattCharacteristic.PROPERTY_BROADCAST
-        };
-        String[] bluetoothGattCharacteristicName = new String[]{
-                "EXTENDED_PROPS",
-                "SIGNED_WRITE",
-                "INDICATE",
-                "NOTIFY",
-                "WRITE",
-                "WRITE_NO_RESPONSE",
-                "READ",
-                "BROADCAST"
-        };
-        for (int i = 0; i < bluetoothGattCharacteristicCodes.length; i++) {
-            int code = bluetoothGattCharacteristicCodes[i];
-            if (addPro >= code) {
-                addPro -= code;
-                arrayList.add(bluetoothGattCharacteristicName[i]);
-            }
-        }
-        return arrayList;
-    }
-
     public class LocalBinder extends Binder {
         public BluetoothLeService getService() {
             return BluetoothLeService.this;
@@ -123,7 +88,6 @@ public class BluetoothLeService extends Service {
         if (mBluetoothAdapter == null) {
             return false;
         }
-
         return true;
     }
 
@@ -172,7 +136,6 @@ public class BluetoothLeService extends Service {
     /**送字串模組*/
     public boolean sendValue(String value, BluetoothGattCharacteristic characteristic) {
         try {
-
             this.sendValue = value.getBytes();
             setCharacteristicNotification(characteristic, true);
             return true;
@@ -209,7 +172,6 @@ public class BluetoothLeService extends Service {
             mBluetoothGatt.setCharacteristicNotification(characteristic, true);
             mBluetoothGatt.readCharacteristic(characteristic);
         }
-
     }
     /**將搜尋到的服務傳出*/
     public List<BluetoothGattService> getSupportedGattServices() {
@@ -231,12 +193,16 @@ public class BluetoothLeService extends Service {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String intentAction;
             if (newState == BluetoothProfile.STATE_CONNECTED) {//當設備已連接
+
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 Log.i(TAG, "Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    gatt.requestMtu(512);
+                }
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {//當設備無法連接
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -249,7 +215,6 @@ public class BluetoothLeService extends Service {
         /**當發現新的服務器*/
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
@@ -272,6 +237,7 @@ public class BluetoothLeService extends Service {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (!lockCharacteristicRead){
                     broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                    gatt.requestMtu(512);
                 }
                 lockCharacteristicRead = false;
                 //Log.d(TAG, "onCharacteristicRead: "+characteristic.getValue());
@@ -288,14 +254,17 @@ public class BluetoothLeService extends Service {
             }
             lockCharacteristicRead = true;
             mBluetoothGatt.readCharacteristic(characteristic);
-            String record = characteristic.getStringValue(0);
-            byte[] a = characteristic.getValue();
-            //Log.d(TAG, "readCharacteristic:回傳 " + record);
-            //Log.d(TAG, "readCharacteristic: 回傳byte[] " + bytesToAscii(a));
         }
 
-
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            super.onMtuChanged(gatt, mtu, status);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.d("mtu", "onMtuChanged: " +mtu);
+            }
+        }
     };
+
 
     /**更新廣播*/
     private void broadcastUpdate(final String action) {
@@ -309,6 +278,8 @@ public class BluetoothLeService extends Service {
 
         /**對於所有其他配置文件，以十六進制寫數據*/
         final byte[] data = characteristic.getValue();
+        EventBus.getDefault().register(this);
+        EventBus.getDefault().post(data);
         if (data != null && data.length > 0) {
 //            final StringBuilder stringBuilder = new StringBuilder(data.length);
 //            for (byte byteChar : data)
@@ -316,6 +287,7 @@ public class BluetoothLeService extends Service {
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
         }
         sendBroadcast(intent);
+        Log.d("asher", "broadcastUpdate:" + data);
     }
     /**
      * Byte 2 Ascii
@@ -366,6 +338,7 @@ public class BluetoothLeService extends Service {
 
         return output.toString();
     }
+
 }
 
 

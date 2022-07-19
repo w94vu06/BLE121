@@ -1,5 +1,6 @@
 package com.Clerk.ble_example.Controller;
 
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -25,7 +26,7 @@ public class DeviceInfoActivity extends AppCompatActivity{
     public static final String INTENT_KEY = "GET_DEVICE";
     private BluetoothLeService mBluetoothLeService;
     private ScannedData selectedDevice;
-    private TextView tvAddress,tvStatus,tvRespond;
+    private TextView tvAddress,tvStatus;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,6 +67,7 @@ public class DeviceInfoActivity extends AppCompatActivity{
         tvAddress.setText(selectedDevice.getAddress());
         tvStatus.setText("未連線");
     }
+
     /**藍芽已連接/已斷線資訊回傳*/
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override

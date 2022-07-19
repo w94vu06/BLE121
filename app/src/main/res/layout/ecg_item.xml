@@ -52,11 +52,11 @@
         app:layout_constraintHorizontal_bias="0.476"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintVertical_bias="0.006"
-        app:max_value="600"
+        app:layout_constraintVertical_bias="0.0"
+        app:max_value="450"
         app:wave_background="#000000"
         app:wave_line_color="#ffff00"
-        app:wave_line_width="4" />
+        app:wave_line_width="1" />
 
     <Button
         android:id="@+id/btn_ms"

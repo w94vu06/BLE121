@@ -1,10 +1,16 @@
 package com.Clerk.ble_example.Controller;
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -14,20 +20,29 @@ import android.widget.TextView;
 
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.Clerk.ble_example.Module.Service.BluetoothLeService;
 import com.Clerk.ble_example.R;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Stream;
 
 public class WaveActivity extends AppCompatActivity {
 
     private final static String TAG = "Wave";
-
     private WaveUtil waveUtil;
     private WaveView wave_view1;
     private TextView tv5,tv_countDown;
@@ -38,28 +53,24 @@ public class WaveActivity extends AppCompatActivity {
         setContentView(R.layout.ecg_item);
 
         initECG();
+        EventBus.getDefault().register(this);
     }
 
     public void initECG() {
-
         waveUtil = new WaveUtil();
         wave_view1 = findViewById(R.id.wave_view1);
-
         tv_countDown = findViewById(R.id.tv_countDown);
         tv5 = findViewById(R.id.textView5);
         btn_ms = findViewById(R.id.btn_ms);
-
         tv5.setText("---");
-
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);//從服務中接受(收)數據
         registerReceiver(LineDataReceiver, intentFilter);
     }
 
     public final BroadcastReceiver LineDataReceiver = new BroadcastReceiver() {
-        String hex = null;
-        int LineData = 0;
-
+        int[] values;
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
@@ -70,10 +81,11 @@ public class WaveActivity extends AppCompatActivity {
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 Intent it = new Intent();
                 it.setClass(WaveActivity.this, ResultActivity.class);
-                waveUtil.showWaveData(LineData);
+
                 btn_ms.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        result.clear();
                         new CountDownTimer(30000, 1000) {
                             @Override
                             public void onTick(long millisUntilFinished) {
@@ -85,31 +97,39 @@ public class WaveActivity extends AppCompatActivity {
                                 waveUtil.stop();
                                 post.putExtra("resultData", result);
                                 startActivity(post);
+                                Log.d("size", "onFinish: " + result.size());
                             }
                         }.start();
                     }
                 });
             }
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-
-                byte[] getByteData = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
-                String ascii = BluetoothLeService.byteArrayToHexStr(getByteData);
-
-                String[] tokens = ascii.split("0A|0D");
-                for (String token : tokens) {
-                    hex = BluetoothLeService.hexToAscii(token);
-                }
-                try {
-                    LineData = Integer.parseInt(hex);
-                } catch (NumberFormatException e) {
-                    return ;
-                }
-                tv5.setText(hex);
-                Log.d("HeartBeat", "心率: "+hex);
-
+                byte[] getByteData = new byte[20];
+                getByteData = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                String hex = BluetoothLeService.bytesToAscii(getByteData);
+                hex = hex.trim();
+//                tv5.setText(ascii);
+//                ascii = ascii.trim();
+//                ascii = ascii.replaceAll("\n+", "!");
+//                String[] tokens = ascii.split("!");
+//                ArrayList<String> list = new ArrayList<String>(Arrays.asList(tokens));
+//                values = new int[list.size()];
+//                for (i = 0; i < list.size(); i++) {
+//                    try {
+//                        values[i] = Integer.parseInt(list.get(i));
+////                        waveUtil.showWaveData(values[i]);
+//                    } catch (Exception e) {
+//
+//                    }
+//                }
+                //waveUtil.showWaveData(values[i]);
+                Log.d("gggg", "心率:"+ Arrays.toString(values));
+                Log.d("dddd", "心率:"+ getByteData);
+                Log.d("aaaa", "心率:\n"+hex);
             }
         }
     };
+
 
     @Override
     protected void onResume() {
@@ -118,7 +138,6 @@ public class WaveActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);//從服務中接受(收)數據
         registerReceiver(LineDataReceiver, intentFilter);
     }
-
     public void onStop() {
         super.onStop();
         unregisterReceiver(LineDataReceiver);
@@ -146,7 +165,7 @@ public class WaveActivity extends AppCompatActivity {
                 }
             };
             //500表示調用schedule方法後等待500ms後調用run方法，50表示以後調用run方法的時間間隔
-            timer.schedule(timerTask,500,999999999);
+            timer.schedule(timerTask,0,999999999);
         }
 
         public void stop(){
@@ -192,6 +211,11 @@ public class WaveActivity extends AppCompatActivity {
     }
     public static String bytesToAscii(byte[] bytes) {
         return bytesToAscii(bytes, 0, bytes.length);
+    }
+
+    public static char byteAsciiToChar(int ascii) {
+        char ch = (char) ascii;
+        return ch;
     }
 
 }
